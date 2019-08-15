@@ -15,7 +15,9 @@ FROM dev.world_cities;
 `)
 .then(
   results => processResults(results),
-  err => console.error(err)
+  err => {
+      console.error(err);
+  }
 );
 
 function processResults(results) {
@@ -33,9 +35,11 @@ function processResults(results) {
 
 
 function processStore(store){
-    console.log(`
+    console.log(store.city);
         
-    INSERT INTO dev.jack_wolfskin (id, city, store, lat, lng, geom)
+    let q = `
+        
+    INSERT INTO dev._jack_wolfskin (id, city, store, lat, lng, geom)
     VALUES (
         ${parseInt(store.id)},
         '${store.city}',
@@ -45,15 +49,14 @@ function processStore(store){
         ${'ST_SetSRID(ST_Point(' + parseFloat(store.lng) + ',' + parseFloat(store.lat) + '),4326)'}
     )
     
-    `);
+    `;
 
     db.query(`
         
-    INSERT INTO dev.jack_wolfskin (id, city, store, lat, lng, geom)
+    INSERT INTO dev._jack_wolfskin (id, city, lat, lng, geom)
     VALUES (
         ${parseInt(store.id)},
         '${store.city}',
-        '${JSON.stringify(store)}',
         ${parseFloat(store.lat)},
         ${parseFloat(store.lng)},
         ${'ST_SetSRID(ST_Point(' + parseFloat(store.lng) + ',' + parseFloat(store.lat) + '),4326)'}
@@ -62,7 +65,9 @@ function processStore(store){
     `)
     .then(
         results => console.log(results),
-        err => console.error(err)
+        err => {
+            console.error(err)
+        }
     );
 }
 

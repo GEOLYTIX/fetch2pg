@@ -5,6 +5,7 @@
   "main": "fetch2pg.js",
   "dependencies": {
     "@databases/pg": "^1.0.1",
+    "dom-parser": "^0.1.6",
     "node-fetch": "^2.6.0",
     "pg": "^7.12.0"
   },
