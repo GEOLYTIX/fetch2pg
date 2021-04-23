@@ -1,5 +1,7 @@
+// requires https://www.npmjs.com/package/node-fetch to be installed
 const fetch = require('node-fetch')
 
+// requires https://www.npmjs.com/package/pg to be installed
 const { Pool } = require('pg')
 
 // The source pg pool connection for the input data.
@@ -29,13 +31,12 @@ let offset = 0;
       st_y(geom_p_4326) lat,
       (ST_MinimumBoundingRadius(st_transform(geom_4326, 3857))).radius
     FROM lookup.uk_glx_google_sampling_grid_10000units
-    LIMIT 100 OFFSET ${offset}`)
+    LIMIT 10 OFFSET ${offset}`)
 
   // Iterate through the returned rows
   for (row of rows) {
 
-    const response = await fetch(`https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${row.lat},${row.lng}&radius=${row.radius}&keyword=carvery&type=restaurant&key=${process.env.google_key}`)
-
+    const response = await fetch(`https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${row.lat},${row.lng}&radius=${row.radius}&keyword=&type=${process.env.type}&key=${process.env.google_key}`)
     const json = await response.json()
 
     // Log error and continue if status is not ok(200).
@@ -47,6 +48,7 @@ let offset = 0;
     // Log row if it doesn't contain results.
     if (!json.results.length) {
       console.log(row);
+      console.log('no results');
       continue
     }
 
@@ -60,10 +62,26 @@ let offset = 0;
       
       try {
 
+        console.log(`
+        INSERT INTO public.hair_care ("full_dump", "h3code", "place_id", "status", "price_level", "rating", "name", "types", "vicinity", "lat", "lng")
+        SELECT
+        '${JSON.stringify(result)}',
+        '${row.h3code}',
+        '${result.place_id}',
+        '${result.business_status}',
+        '${result.price_level}',
+        '${result.rating}',
+        '${result.name.replace(/\'/g, "")}',
+        '${result.types.join(', ')}',
+        '${result.vicinity.replace(/\'/g, "")}',
+        ${result.geometry.location.lat},
+        ${result.geometry.location.lng};`)
+
         // Store the result in target table.
         await target_pool.query(`
-        INSERT INTO dev._carvery ("h3code", "place_id", "status", "price_level", "rating", "name", "types", "vicinity", "lat", "lng")
+        INSERT INTO public.hair_care ("full_dump", "h3code", "place_id", "status", "price_level", "rating", "name", "types", "vicinity", "lat", "lng")
         SELECT
+        '${JSON.stringify(result).replace(/\'/g, "")}',
         '${row.h3code}',
         '${result.place_id}',
         '${result.business_status}',
