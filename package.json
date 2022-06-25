@@ -6,7 +6,7 @@
     "@databases/pg": "^2.1.1",
     "dom-parser": "^0.1.6",
     "jsdom": "^16.4.0",
-    "node-fetch": "^2.6.0",
+    "node-fetch": "^2.6.7",
     "pg": "^8.0.2"
   }
 }
